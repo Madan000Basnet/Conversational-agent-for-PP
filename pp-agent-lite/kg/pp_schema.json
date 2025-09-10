@@ -1,0 +1,34 @@
+{
+  "variables": [
+    { "name": "products",           "type": "list[string]",                         "required": true,  "hint": "Distinct product names." },
+    { "name": "periods",            "type": "list[string]",                         "required": true,  "hint": "Time buckets (e.g., W1, W2, or dates)." },
+
+    { "name": "initial_inventory",  "type": "map[string, number]",                  "required": false, "hint": "I0 per product (e.g., P1=5, P2=0)." },
+
+    { "name": "regular_cost",       "type": "map[string, map[string, number]]",     "required": false, "hint": "c[p][t] cost per regular unit." },
+    { "name": "overtime_cost",      "type": "map[string, map[string, number]]",     "required": false, "hint": "o[p][t] cost per overtime unit." },
+    { "name": "material_cost",      "type": "map[string, map[string, number]]",     "required": false, "hint": "m[p][t] material cost per unit." },
+    { "name": "holding_cost",       "type": "map[string, map[string, number]]",     "required": false, "hint": "h[p][t] inventory holding cost per period." },
+    { "name": "setup_cost",         "type": "map[string, map[string, number]]",     "required": false, "hint": "s[p][t] setup cost if produced in t." },
+    { "name": "shortage_cost",      "type": "map[string, map[string, number]]",     "required": false, "hint": "g[p][t] penalty for unmet demand in t." },
+
+    { "name": "labor_hours",        "type": "map[string, map[string, number]]",     "required": false, "hint": "h_lab[p][t] hours per unit." },
+    { "name": "labor_budget",       "type": "map[string, number]",                  "required": false, "hint": "UB^L[t] hours available per period." },
+    { "name": "material_budget",    "type": "map[string, number]",                  "required": false, "hint": "UB^M[t] monetary budget per period." },
+
+    { "name": "demand",             "type": "map[string, map[string, number]]",     "required": false, "hint": "d[p][t] demand in each period." },
+    { "name": "allow_backlog",      "type": "boolean",                              "required": false, "hint": "If false, disallow shortage (v=0)." },
+
+    { "name": "min_batch",          "type": "map[string, number]",                  "required": false, "hint": "Min units if produced in a period." },
+    { "name": "max_batches",        "type": "map[string, number]",                  "required": false, "hint": "Max units per period per product." },
+    { "name": "setup_link_bigM",    "type": "map[string, map[string, number]]",     "required": false, "hint": "Optional custom big-M for linking x+y ≤ M·u." },
+
+    { "name": "revenue",            "type": "map[string, map[string, number]]",     "required": false, "hint": "(Optional) price[p][t]; subtract from cost." }
+  ],
+  "constraints": [
+    { "name": "inventory_balance",   "applies": ["initial_inventory","demand","periods","products"] },
+    { "name": "labor_budget_limit",  "applies": ["labor_hours","labor_budget","periods","products"], "optional": true },
+    { "name": "material_budget",     "applies": ["material_cost","material_budget","periods","products"], "optional": true },
+    { "name": "setup_linking",       "applies": ["setup_cost","min_batch","max_batches","setup_link_bigM"], "optional": true }
+  ]
+}
