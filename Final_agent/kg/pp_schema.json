@@ -1,0 +1,331 @@
+{
+  "variables": [
+    {
+      "name": "products",
+      "type": "list[string]",
+      "required": true,
+      "hint": "Distinct product names.",
+      "module": "core",
+      "tier": "minimal"
+    },
+    {
+      "name": "periods",
+      "type": "list[string]",
+      "required": true,
+      "hint": "Time buckets (e.g., W1, W2, or dates).",
+      "module": "core",
+      "tier": "minimal"
+    },
+    {
+      "name": "initial_inventory",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "I0 per product (e.g., P1=5, P2=0).",
+      "optional": true,
+      "order": 10,
+      "module": "core",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "demand",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Demand per product per period.",
+      "optional": true,
+      "order": 20,
+      "module": "core",
+      "tier": "minimal"
+    },
+    {
+      "name": "profit",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Per-product profit.",
+      "optional": true,
+      "order": 30,
+      "module": "profit",
+      "tier": "minimal"
+    },
+    {
+      "name": "usage",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Per-product resource usage (e.g., hours, machines). usage[product][resource].",
+      "optional": true,
+      "order": 31,
+      "module": "profit",
+      "tier": "minimal"
+    },
+    {
+      "name": "capacity",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Resource capacity by period: capacity[resource][period].",
+      "optional": true,
+      "order": 32,
+      "module": "profit",
+      "tier": "minimal"
+    },
+    {
+      "name": "regular_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "c[p][t] cost per regular unit.",
+      "optional": true,
+      "order": 100,
+      "module": "cost",
+      "tier": "minimal"
+    },
+    {
+      "name": "overtime_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "o[p][t] cost per overtime unit.",
+      "optional": true,
+      "order": 101,
+      "module": "cost",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "material_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "m[p][t] cost per unit of material.",
+      "optional": true,
+      "order": 102,
+      "module": "cost",
+      "tier": "minimal"
+    },
+    {
+      "name": "holding_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "h[p][t] holding cost per unit of inventory per period.",
+      "optional": true,
+      "order": 103,
+      "module": "cost",
+      "tier": "minimal"
+    },
+    {
+      "name": "setup_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "s[p][t] setup cost if production occurs.",
+      "optional": true,
+      "order": 104,
+      "module": "cost",
+      "tier": "minimal"
+    },
+    {
+      "name": "shortage_cost",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "g[p][t] penalty cost per unit short.",
+      "optional": true,
+      "order": 105,
+      "module": "cost",
+      "tier": "minimal"
+    },
+    {
+      "name": "labor_hours",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Labor hours required per unit of each product per period.",
+      "optional": true,
+      "order": 106,
+      "module": "labor",
+      "tier": "minimal"
+    },
+    {
+      "name": "labor_budget",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Available labor hours per period.",
+      "optional": true,
+      "order": 107,
+      "module": "labor",
+      "tier": "minimal"
+    },
+    {
+      "name": "material_budget",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Available material budget per period.",
+      "optional": true,
+      "order": 108,
+      "module": "material_budget",
+      "tier": "minimal"
+    },
+    {
+      "name": "allow_backlog",
+      "type": "boolean",
+      "required": false,
+      "hint": "Whether backlog (unmet demand) is allowed.",
+      "optional": true,
+      "order": 200,
+      "module": "core",
+      "tier": "minimal"
+    },
+    {
+      "name": "max_batches",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Maximum number of batches for each product.",
+      "optional": true,
+      "order": 201,
+      "module": "setup",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "min_batch",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Minimum batch size for each product.",
+      "optional": true,
+      "order": 202,
+      "module": "setup",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "setup_link_bigM",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Optional manual Big-M values to link setup decisions to production.",
+      "optional": true,
+      "order": 203,
+      "module": "setup",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "revenue",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Revenue per unit of product per period.",
+      "optional": true,
+      "order": 300,
+      "module": "cost",
+      "tier": "nice_to_have"
+    },
+    {
+      "name": "shelf_life",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Max number of periods an item can be stored (e.g., bread=1, cake=2).",
+      "optional": true,
+      "order": 160,
+      "module": "shelflife",
+      "tier": "minimal"
+    },
+    {
+      "name": "water_per_unit",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Water used per unit produced (units same as cap).",
+      "optional": true,
+      "order": 170,
+      "module": "sustain",
+      "tier": "minimal"
+    },
+    {
+      "name": "water_cap",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "Water usage cap per period.",
+      "optional": true,
+      "order": 171,
+      "module": "sustain",
+      "tier": "minimal"
+    },
+    {
+      "name": "co2_per_unit",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "CO2 emitted per unit produced (units same as cap).",
+      "optional": true,
+      "order": 172,
+      "module": "sustain",
+      "tier": "minimal"
+    },
+    {
+      "name": "co2_cap",
+      "type": "map[string, number]",
+      "required": false,
+      "hint": "CO2 emission cap per period.",
+      "optional": true,
+      "order": 173,
+      "module": "sustain",
+      "tier": "minimal"
+    },
+    {
+      "name": "plants",
+      "type": "list[string]",
+      "required": false,
+      "hint": "List of plants/factories (e.g., [\"A\",\"B\"]).",
+      "optional": true,
+      "order": 180,
+      "module": "plants",
+      "tier": "minimal"
+    },
+    {
+      "name": "labor_budget_plant",
+      "type": "map[string, map[string, number]]",
+      "required": false,
+      "hint": "Labour budget per plant per period: labor_budget_plant[plant][period].",
+      "optional": true,
+      "order": 181,
+      "module": "plants",
+      "tier": "minimal"
+    },
+    {
+      "name": "transport_cost",
+      "type": "map[string, map[string, map[string, number]]]",
+      "required": false,
+      "hint": "Transport cost per product per plant per period: transport_cost[product][plant][period].",
+      "optional": true,
+      "order": 182,
+      "module": "plants",
+      "tier": "nice_to_have"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "inventory_balance",
+      "applies": [
+        "initial_inventory",
+        "demand",
+        "periods",
+        "products"
+      ]
+    },
+    {
+      "name": "labor_budget_limit",
+      "applies": [
+        "labor_hours",
+        "labor_budget",
+        "periods",
+        "products"
+      ],
+      "optional": true
+    },
+    {
+      "name": "material_budget",
+      "applies": [
+        "material_cost",
+        "material_budget",
+        "periods",
+        "products"
+      ],
+      "optional": true
+    },
+    {
+      "name": "setup_linking",
+      "applies": [
+        "setup_cost",
+        "min_batch",
+        "max_batches",
+        "setup_link_bigM"
+      ],
+      "optional": true
+    }
+  ]
+}
